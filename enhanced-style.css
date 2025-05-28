@@ -1,0 +1,230 @@
+/* Enhanced Sports Odds Display Styles */
+
+.sports-odds-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #ffffff;
+    color: #333333;
+}
+
+.odds-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.odds-header h3 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.match-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.match-tab {
+    padding: 8px 16px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.match-tab.active {
+    background: var(--primary-color, #007bff);
+    color: white;
+    border-color: var(--primary-color, #007bff);
+}
+
+.match-card {
+    background: white;
+    border-radius: var(--border-radius, 12px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    padding: 20px;
+    transition: transform 0.2s ease;
+}
+
+.match-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.match-info {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.live-indicator {
+    position: absolute;
+    top: -10px;
+    right: 0;
+    background: var(--success-color, #28a745);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.home-team, .away-team {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.vs {
+    color: #666;
+    font-size: 14px;
+}
+
+.match-time {
+    color: #666;
+    font-size: 14px;
+}
+
+.bookmaker-odds {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.bookmaker {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.bookmaker-name {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.odds-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.odd-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.odd-item:hover {
+    border-color: var(--primary-color, #007bff);
+    background: #f0f7ff;
+}
+
+.outcome-name {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.odd-value {
+    display: block;
+    font-weight: bold;
+    color: #333;
+}
+
+.odds-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.odds-footer p {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto 15px;
+}
+
+.scorido-branding {
+    color: #333;
+    font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sports-odds-container {
+        padding: 10px;
+    }
+    
+    .match-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .bookmaker-odds {
+        grid-template-columns: 1fr;
+    }
+    
+    .teams {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+    }
+    
+    .vs {
+        margin: 5px 0;
+    }
+}
+
+/* Animation for live updates */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.live-indicator {
+    animation: pulse 2s infinite;
+}
+
+/* Dark mode support - now as a separate class */
+.sports-odds-container.dark-mode {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.sports-odds-container.dark-mode .match-card {
+    background: #2d2d2d;
+}
+
+.sports-odds-container.dark-mode .bookmaker {
+    background: #333;
+}
+
+.sports-odds-container.dark-mode .odd-item {
+    background: #2d2d2d;
+    border-color: #444;
+}
+
+.sports-odds-container.dark-mode .odds-footer {
+    border-top-color: #333;
+}
+
+.sports-odds-container.dark-mode .odds-footer p {
+    color: #ccc;
+} 
