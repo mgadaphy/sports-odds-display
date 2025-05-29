@@ -375,6 +375,8 @@ jQuery(document).ready(function($) {
         // Add a loading indicator (optional but good UX)
         hotGamesList.addClass('loading').css('opacity', 0.5); // Example loading state
 
+        console.log('Attempting to refresh hot games with data:', { leagues: leagues, bookmakers: bookmakers, limit: limit });
+
         $.ajax({
             url: ajax_object.ajax_url,
             type: 'POST',
@@ -387,6 +389,7 @@ jQuery(document).ready(function($) {
                 // Add regions, markets if they become configurable
             },
             success: function(response) {
+                console.log('Hot games AJAX success response:', response);
                 if (response.success) {
                     // Replace the content of the hot games list with the new HTML
                     hotGamesList.html(response.data.html);
@@ -397,7 +400,7 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX error refreshing hot games:', status, error);
+                console.error('AJAX error refreshing hot games:', status, error, xhr.responseText);
                 hotGamesList.html('<div class="odds-error">AJAX request failed to refresh hot games.</div>'); // Display generic error
             },
             complete: function() {

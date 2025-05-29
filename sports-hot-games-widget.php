@@ -49,11 +49,11 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
                     'soccer_germany_bundesliga' => __('German Bundesliga', 'textdomain'),
                     'soccer_italy_serie_a' => __('Italian Serie A', 'textdomain'),
                     'soccer_france_ligue_one' => __('French Ligue 1', 'textdomain'),
-                    'soccer_mls' => __('Major League Soccer (MLS)', 'textdomain'),
+                    'soccer_usa_mls' => __('Major League Soccer (MLS)', 'textdomain'),
                     'soccer_uefa_champs_league' => __('UEFA Champions League', 'textdomain'),
                     'soccer_uefa_europa_league' => __('UEFA Europa League', 'textdomain'),
-                    'soccer_africa_cup_nations' => __('Africa Cup of Nations', 'textdomain'),
-                    'soccer_cameroon_league' => __('Cameroon Elite One', 'textdomain'),
+                    'soccer_africa_cup_of_nations' => __('Africa Cup of Nations', 'textdomain'),
+                    'soccer_cameroon_league' => __('Cameroon Elite One (Likely Unsupported)', 'textdomain'),
                     
                     // American Sports
                     'americanfootball_nfl' => __('NFL', 'textdomain'),
@@ -61,11 +61,17 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
                     'baseball_mlb' => __('MLB', 'textdomain'),
                     
                     // Other Sports
-                    'tennis_atp' => __('ATP Tennis', 'textdomain'),
-                    'tennis_wta' => __('WTA Tennis', 'textdomain'),
-                    'golf_pga_championship' => __('PGA Championship', 'textdomain'),
+                    'tennis_atp_us_open' => __('ATP US Open', 'textdomain'),
+                    'tennis_atp_wimbledon' => __('ATP Wimbledon', 'textdomain'),
+                    'tennis_atp_french_open' => __('ATP French Open', 'textdomain'),
+                    'tennis_atp_aus_open_singles' => __('ATP Australian Open', 'textdomain'),
+                    'tennis_wta_us_open' => __('WTA US Open', 'textdomain'),
+                    'tennis_wta_wimbledon' => __('WTA Wimbledon', 'textdomain'),
+                    'tennis_wta_french_open' => __('WTA French Open', 'textdomain'),
+                    'tennis_wta_aus_open_singles' => __('WTA Australian Open', 'textdomain'),
+                    'golf_pga_championship_winner' => __('PGA Championship Winner', 'textdomain'), // Note: Likely for winner odds, not individual matches
                 ],
-                'default' => ['soccer_epl', 'soccer_uefa_champs_league', 'soccer_mls'], // Updated default leagues
+                'default' => ['soccer_epl', 'soccer_uefa_champs_league', 'soccer_usa_mls'], // Updated default leagues
                 'description' => __('Select the leagues to highlight in the Hot Games section.', 'textdomain'),
             ]
         );
@@ -172,35 +178,31 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
         $dark_mode_class = $settings['dark_mode'] === 'yes' ? 'dark-mode' : '';
         $refresh_interval = intval($settings['auto_refresh_interval']);
 
-        // --- Data Fetching (To be implemented/refined) ---
-        // We will need a way to fetch data for multiple leagues efficiently
-        // For now, we'll just indicate where the content will go
-        // $hot_games_data = ... fetch data based on $leagues, $limit, $bookmakers ...
-        // --- End Data Fetching ---
-
-        // --- Data Fetching ---
-        // Use the new function to fetch data for the selected leagues
-        // Default regions and markets for hot games for now
-        $regions = 'uk,eu'; // Default regions - can be made configurable later
-        $markets = 'h2h'; // Default market - can be made configurable later
+        // Default regions and markets for hot games
+        $regions = 'uk,eu';
+        $markets = 'h2h';
 
         $hot_games_data = fetch_odds_for_leagues($leagues, $regions, $markets);
 
         // Handle fetching errors
         if (isset($hot_games_data['error'])) {
-            echo '<div class="odds-error">Error fetching hot games: ' . esc_html($hot_games_data['error']) . '</div>';
-            return; // Stop rendering if there's an error
+            echo '<div class="odds-error">' . esc_html($hot_games_data['error']) . '</div>';
+            return;
         }
 
-        // Apply limit and bookmaker filtering after fetching and combining data
-        if (!empty($hot_games_data)) {
-             // Filter by selected bookmakers
+        // Handle warnings if any
+        $warnings = isset($hot_games_data['warnings']) ? $hot_games_data['warnings'] : array();
+        $data = isset($hot_games_data['data']) ? $hot_games_data['data'] : $hot_games_data;
+
+        // Apply limit and bookmaker filtering
+        if (!empty($data)) {
+            // Filter by selected bookmakers
             $allowed_bookmakers = is_array($settings['bookmakers']) ? $settings['bookmakers'] : array();
             $filter_bookmakers = !empty($allowed_bookmakers);
 
             if ($filter_bookmakers) {
                 $filtered_data = [];
-                foreach ($hot_games_data as $match) {
+                foreach ($data as $match) {
                     $match_bookmakers = [];
                     foreach ($match['bookmakers'] as $bookmaker) {
                         if (in_array($bookmaker['title'], $allowed_bookmakers)) {
@@ -213,37 +215,42 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
                         $filtered_data[] = $match;
                     }
                 }
-                $hot_games_data = $filtered_data;
+                $data = $filtered_data;
             }
 
             // Apply the limit
-            $hot_games_data = array_slice($hot_games_data, 0, $limit);
+            $data = array_slice($data, 0, $limit);
         }
-
-        // --- End Data Fetching and Filtering ---
 
         ?>
         <div class="sports-hot-games-container sports-odds-container <?php echo esc_attr($dark_mode_class); ?>"
             data-leagues="<?php echo esc_attr(implode(',', $leagues)); ?>"
-            data-bookmakers="<?php echo esc_attr(implode(',', is_array($settings['bookmakers']) ? $settings['bookmakers'] : [])); ?>"
+            data-bookmakers="<?php echo esc_attr($bookmakers); ?>"
             data-limit="<?php echo esc_attr($limit); ?>"
             data-refresh-interval="<?php echo esc_attr($refresh_interval); ?>">
+            
             <div class="hot-games-header odds-header">
                 <h3><?php echo __('Upcoming Hot Games', 'textdomain'); ?></h3>
             </div>
+
+            <?php if (!empty($warnings)): ?>
+                <div class="odds-warning">
+                    <?php foreach ($warnings as $warning): ?>
+                        <p><?php echo esc_html($warning); ?></p>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
             <div class="hot-games-list odds-matches">
                 <?php
-                // --- Rendering Loop (To be implemented) ---
-                // Get enhanced settings for localization and timezone
                 $enhanced_settings = get_option('enhanced_odds_settings', array(
                     'locale' => 'en',
                     'timezone' => 'Africa/Douala',
-                    'currency' => 'XAF' // Although currency display is not strictly needed for hot games, include for completeness if we decide to show prices
+                    'currency' => 'XAF'
                 ));
 
-                if (!empty($hot_games_data)) {
-                    // Loop through the fetched and filtered hot games data
-                    foreach ($hot_games_data as $match) {
+                if (!empty($data)) {
+                    foreach ($data as $match) {
                         ?>
                         <div class="match-card hot-game-match">
                             <div class="match-info">
@@ -260,16 +267,15 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
                                     ?>
                                 </div>
                             </div>
-                            
+
                             <?php if (!empty($match['bookmakers'])) : ?>
                             <div class="bookmaker-odds">
                                 <?php foreach ($match['bookmakers'] as $bookmaker): ?>
                                     <div class="bookmaker">
                                         <div class="bookmaker-name"><?php echo esc_html($bookmaker['title']); ?></div>
                                         <div class="odds-row">
-                                            <?php 
-                                            // Assuming only h2h for hot games for simplicity initially
-                                            if (isset($bookmaker['markets'][0]['outcomes'])): 
+                                            <?php
+                                            if (isset($bookmaker['markets'][0]['outcomes'])):
                                                 foreach ($bookmaker['markets'][0]['outcomes'] as $outcome): ?>
                                                     <div class="odd-item">
                                                         <span class="outcome-name"><?php echo esc_html($outcome['name']); ?></span>
@@ -288,8 +294,6 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
                 } else {
                     echo '<div class="odds-no-data">' . __('No hot games available at the moment.', 'textdomain') . '</div>';
                 }
-                // --- End Rendering Loop ---
-
                 ?>
             </div>
 
@@ -300,7 +304,6 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
                     </a>
                 </div>
             <?php endif; ?>
-
         </div>
         <?php
     }

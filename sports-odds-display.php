@@ -136,21 +136,36 @@ class SportsOddsDisplay {
         $response = wp_remote_get($request_url, array('timeout' => 30));
         
         if (is_wp_error($response)) {
-            error_log('Sports Odds Display: API request failed - ' . $response->get_error_message());
-            return array('error' => 'Failed to fetch data: ' . $response->get_error_message());
+            $error_message = $response->get_error_message();
+            error_log('Sports Odds Display: API request failed for ' . $sport . ' - ' . $error_message);
+            return array('error' => 'Failed to fetch data: ' . $error_message);
+        }
+        
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            $error_message = 'API returned status code ' . $response_code;
+            error_log('Sports Odds Display: ' . $error_message . ' for ' . $sport);
+            return array('error' => $error_message);
         }
         
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log('Sports Odds Display: Invalid JSON response from API');
+            error_log('Sports Odds Display: Invalid JSON response from API for ' . $sport);
             return array('error' => 'Invalid JSON response');
         }
 
-        // Log API response for debugging
+        // Check for API-specific errors
         if (isset($data['error'])) {
-            error_log('Sports Odds Display: API returned error - ' . $data['error']);
+            error_log('Sports Odds Display: API returned error for ' . $sport . ' - ' . $data['error']);
+            return array('error' => $data['error']);
+        }
+
+        // Check if we got any data
+        if (empty($data)) {
+            error_log('Sports Odds Display: No data returned for ' . $sport);
+            return array('error' => 'No odds data available for ' . $sport);
         }
         
         // Cache for 10 minutes
@@ -375,19 +390,28 @@ function fetch_odds_for_leagues($leagues, $regions, $markets) {
                 }
                 // Merge data from different sports
                 $combined_data = array_merge($combined_data, $sport_data);
+            } else {
+                $errors[] = 'No data available for ' . $sport;
             }
         } catch (Exception $e) {
             $errors[] = 'Exception while fetching ' . $sport . ': ' . $e->getMessage();
         }
     }
 
-    if (empty($combined_data) && !empty($errors)) {
-        // Return combined errors if any occurred and no data was fetched
-        return array('error' => implode('; ', $errors));
+    // If we have some data but also some errors, include both
+    if (!empty($combined_data) && !empty($errors)) {
+        $result = array(
+            'data' => $combined_data,
+            'warnings' => $errors
+        );
+        set_transient($transient_key, $result, 10 * MINUTE_IN_SECONDS);
+        return $result;
     }
 
+    // If we have no data at all, return the errors
     if (empty($combined_data)) {
-        return array('error' => 'No odds data available for the selected leagues.');
+        $error_message = !empty($errors) ? implode('; ', $errors) : 'No odds data available for the selected leagues.';
+        return array('error' => $error_message);
     }
 
     // Sort combined data by commencement time
