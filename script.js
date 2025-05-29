@@ -365,17 +365,20 @@ jQuery(document).ready(function($) {
         const leagues = container.data('leagues'); // Comma-separated string from data attribute
         const bookmakers = container.data('bookmakers'); // Comma-separated string from data attribute
         const limit = container.data('limit'); // Number from data attribute
+        const enableDateFilter = container.data('enable-date-filter') === 'yes'; // New data attribute
+        // const filterDate = container.data('filter-date'); // Removed - will get from frontend input
         
-        // Note: Regions and Markets are currently fixed in the AJAX handler for hot games
-        // These can be added as data attributes and passed if needed in the future
-
         // Find the list container to update
         const hotGamesList = container.find('.hot-games-list');
+        const dateInput = container.find('.hot-games-filter-date-input'); // Find the frontend date input
         
+        // Get the selected date from the frontend input, default to the data attribute if available and filter is enabled
+        const filterDate = enableDateFilter ? (dateInput.val() || container.data('filter-date')) : '';
+
         // Add a loading indicator (optional but good UX)
         hotGamesList.addClass('loading').css('opacity', 0.5); // Example loading state
 
-        console.log('Attempting to refresh hot games with data:', { leagues: leagues, bookmakers: bookmakers, limit: limit });
+        console.log('Attempting to refresh hot games with data:', { leagues: leagues, bookmakers: bookmakers, limit: limit, enableDateFilter: enableDateFilter, filterDate: filterDate });
 
         $.ajax({
             url: ajax_object.ajax_url,
@@ -383,32 +386,82 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'refresh_hot_games',
                 nonce: ajax_object.nonce,
-                leagues: leagues ? leagues.split(',') : [], // Convert comma string back to array
-                bookmakers: bookmakers ? bookmakers.split(',') : [], // Convert comma string back to array
-                limit: limit
-                // Add regions, markets if they become configurable
+                leagues: leagues ? leagues.split(',') : [],
+                bookmakers: bookmakers ? bookmakers.split(',') : [],
+                limit: limit,
+                // No need to send date/filtering options to AJAX handler for client-side filtering
             },
             success: function(response) {
-                console.log('Hot games AJAX success response:', response);
+                console.log('Hot games AJAX response:', response);
+                hotGamesList.removeClass('loading').css('opacity', 1);
+
                 if (response.success) {
-                    // Replace the content of the hot games list with the new HTML
-                    hotGamesList.html(response.data.html);
-                    console.log('Hot games refreshed successfully!');
+                    // Store the original fetched matches (before any filtering)
+                    container.data('original-matches', response.data.html);
+                    
+                    // Apply initial filtering based on the date input value (or data attribute default)
+                    applyHotGamesFilter(container);
+
                 } else {
-                    console.error('Error refreshing hot games:', response.data.message);
-                    hotGamesList.html('<div class="odds-error">' + response.data.message + '</div>'); // Display error
+                    hotGamesList.html('<div class="odds-error">' + (response.data.message || 'Failed to load hot games.') + '</div>');
+                     console.error('Hot games AJAX error:', response.data.message);
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX error refreshing hot games:', status, error, xhr.responseText);
-                hotGamesList.html('<div class="odds-error">AJAX request failed to refresh hot games.</div>'); // Display generic error
-            },
-            complete: function() {
-                 // Remove loading indicator
-                hotGamesList.removeClass('loading').css('opacity', 1); // Example loading state
+                console.error('Hot games AJAX request failed:', status, error);
+                hotGamesList.removeClass('loading').css('opacity', 1);
+                hotGamesList.html('<div class="odds-error">Failed to load hot games due to a server error.</div>');
             }
         });
     }
+
+    // New function to apply filtering based on date input
+    function applyHotGamesFilter(container) {
+        const enableDateFilter = container.data('enable-date-filter') === 'yes';
+        const dateInput = container.find('.hot-games-filter-date-input');
+        const hotGamesList = container.find('.hot-games-list');
+        const originalMatchesHtml = container.data('original-matches');
+
+        if (!originalMatchesHtml) {
+            // No data fetched yet
+            return;
+        }
+
+        let matches = $(originalMatchesHtml).find('.match-card');
+
+        if (enableDateFilter && dateInput.val()) {
+            const selectedDate = new Date(dateInput.val());
+            // Set time to midnight for comparison (start of the selected day)
+            selectedDate.setHours(0, 0, 0, 0);
+            
+            matches = matches.filter(function() {
+                const matchTimeStr = $(this).find('.match-time').text();
+                // Attempt to parse the match time string. This might need adjustment based on the format.
+                // Ensure the date parsing is robust and considers timezones if necessary.
+                const matchDate = new Date(matchTimeStr);
+                
+                // Compare dates: keep matches from the selected date forward
+                return matchDate >= selectedDate;
+            });
+
+             if (matches.length === 0) {
+                 hotGamesList.html('<div class="odds-no-data">' + (ajax_object.locale === 'fr' ? 'Aucun match programmé à partir de cette date pour les ligues sélectionnées.' : 'No programmed match from this date forward for the selected leagues.') + '</div>');
+             } else {
+                 hotGamesList.html(matches); // Replace content with filtered matches
+             }
+
+        } else {
+            // If filter is disabled or no date is selected, show all original matches
+            hotGamesList.html(originalMatchesHtml);
+        }
+    }
+
+    // Add event listener for date input change
+    $(document).on('change', '.hot-games-filter-date-input', function() {
+        const container = $(this).closest('.sports-hot-games-container');
+        applyHotGamesFilter(container);
+    });
+
 });
 
 // Utility functions

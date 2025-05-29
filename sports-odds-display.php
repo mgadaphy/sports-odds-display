@@ -51,6 +51,11 @@ class SportsOddsDisplay {
         $this->api_key = get_option('odds_api_key', '');
     }
     
+    // Public method to set the API key
+    public function set_api_key($api_key) {
+        $this->api_key = $api_key;
+    }
+    
     public function enqueue_scripts() {
         wp_enqueue_style('sports-odds-style', plugin_dir_url(__FILE__) . 'style.css');
         wp_enqueue_style('enhanced-odds-style', plugin_dir_url(__FILE__) . 'enhanced-style.css');
@@ -110,7 +115,7 @@ class SportsOddsDisplay {
     }
     
     // Fetch odds from API
-    private function fetch_odds($sport = 'soccer_epl', $regions = 'us,uk,eu', $markets = 'h2h,spreads,totals') {
+    public function fetch_odds($sport = 'soccer_epl', $regions = 'us,uk,eu', $markets = 'h2h,spreads,totals') {
         if (empty($this->api_key)) {
             error_log('Sports Odds Display: API key is empty in fetch_odds');
             return array('error' => 'API key not configured');
@@ -296,12 +301,22 @@ class SportsOddsDisplay {
                                 <div class="bookmaker">
                                     <div class="bookmaker-name"><?php echo esc_html($bookmaker['title']); ?></div>
                                     <div class="odds-row">
-                                        <?php foreach ($bookmaker['markets'][0]['outcomes'] as $outcome): ?>
-                                            <div class="odd-item">
-                                                <span class="outcome-name"><?php echo esc_html($outcome['name']); ?></span>
-                                                <span class="odd-value"><?php echo number_format($outcome['price'], 2); ?></span>
-                                            </div>
-                                        <?php endforeach; ?>
+                                        <?php 
+                                        // Check if markets exist and are an array before looping
+                                        if (!empty($bookmaker['markets']) && is_array($bookmaker['markets']) && isset($bookmaker['markets'][0]['outcomes']) && is_array($bookmaker['markets'][0]['outcomes'])): 
+                                            foreach ($bookmaker['markets'][0]['outcomes'] as $outcome): ?>
+                                                <div class="odd-item">
+                                                    <span class="outcome-name"><?php echo esc_html($outcome['name']); ?></span>
+                                                    <span class="odd-value"><?php echo number_format($outcome['price'], 2); ?></span>
+                                                </div>
+                                            <?php endforeach;
+                                        else:
+                                            // Display a message if no markets or outcomes are available for this bookmaker
+                                            ?>
+                                            <div class="odds-no-data"><?php echo esc_html__('No odds available for this market.', 'textdomain'); ?></div>
+                                            <?php
+                                        endif;
+                                        ?>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -339,6 +354,10 @@ function handle_refresh_odds() {
     $markets = sanitize_text_field($_POST['markets']);
     
     $odds_display = new SportsOddsDisplay();
+    // Get API key directly from options within the AJAX handler
+    $api_key = get_option('odds_api_key', '');
+    $odds_display->set_api_key($api_key); // Use the public setter
+
     $odds_data = $odds_display->fetch_odds($sport, $regions, $markets);
     
     wp_send_json_success($odds_data);
@@ -371,7 +390,7 @@ function fetch_odds_for_leagues($leagues, $regions, $markets) {
     }
 
     // Set the API key for the odds display instance
-    $odds_display->api_key = $api_key;
+    $odds_display->set_api_key($api_key);
 
     foreach ($leagues as $sport) {
         try {

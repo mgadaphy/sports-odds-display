@@ -626,7 +626,7 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
         $regions = is_array($settings['regions']) ? implode(',', $settings['regions']) : 'uk,eu';
         $markets = is_array($settings['markets']) ? implode(',', $settings['markets']) : 'h2h';
         $limit = $settings['limit'];
-        $dark_mode_class = $settings['dark_mode'] === 'yes' ? 'dark-mode' : '';
+        $dark_mode_class = isset($settings['dark_mode']) && $settings['dark_mode'] === 'yes' ? 'dark-mode' : '';
         $bookmakers = is_array($settings['bookmakers']) ? implode(',', $settings['bookmakers']) : '';
         
         echo '<div class="sports-odds-container ' . esc_attr($dark_mode_class) . '">';
