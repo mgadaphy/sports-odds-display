@@ -14,20 +14,24 @@ if (!defined('ABSPATH')) {
 // Include enhanced settings
 require_once plugin_dir_path(__FILE__) . 'enhanced-settings.php';
 
-// Register Elementor widget if Elementor is active
-function register_sports_odds_elementor_widget() {
+// Register Elementor widgets if Elementor is active
+function register_sports_odds_widgets() {
     // Ensure Elementor is loaded
     if (!did_action('elementor/loaded')) {
         return;
     }
 
-    // Include the widget file here, inside the hooked function
+    // Include the main odds widget file
     require_once plugin_dir_path(__FILE__) . 'elementor-widget.php';
 
-    // Register the widget
+    // Include the hot games widget file
+    require_once plugin_dir_path(__FILE__) . 'sports-hot-games-widget.php';
+
+    // Register the widgets
     \Elementor\Plugin::instance()->widgets_manager->register_widget_type(new Sports_Odds_Elementor_Widget());
+    \Elementor\Plugin::instance()->widgets_manager->register_widget_type(new Sports_Hot_Games_Elementor_Widget());
 }
-add_action('elementor/widgets/widgets_registered', 'register_sports_odds_elementor_widget');
+add_action('elementor/widgets/widgets_registered', 'register_sports_odds_widgets');
 
 
 class SportsOddsDisplay {
@@ -81,8 +85,7 @@ class SportsOddsDisplay {
             'The Odds API Key',
             array($this, 'api_key_render'),
             'sports_odds',
-            'sports_odds_section'
-        );
+            'sports_odds_section');
     }
     
     public function api_key_render() {
@@ -109,6 +112,7 @@ class SportsOddsDisplay {
     // Fetch odds from API
     private function fetch_odds($sport = 'soccer_epl', $regions = 'us,uk,eu', $markets = 'h2h,spreads,totals') {
         if (empty($this->api_key)) {
+            error_log('Sports Odds Display: API key is empty in fetch_odds');
             return array('error' => 'API key not configured');
         }
         
@@ -132,6 +136,7 @@ class SportsOddsDisplay {
         $response = wp_remote_get($request_url, array('timeout' => 30));
         
         if (is_wp_error($response)) {
+            error_log('Sports Odds Display: API request failed - ' . $response->get_error_message());
             return array('error' => 'Failed to fetch data: ' . $response->get_error_message());
         }
         
@@ -139,7 +144,13 @@ class SportsOddsDisplay {
         $data = json_decode($body, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('Sports Odds Display: Invalid JSON response from API');
             return array('error' => 'Invalid JSON response');
+        }
+
+        // Log API response for debugging
+        if (isset($data['error'])) {
+            error_log('Sports Odds Display: API returned error - ' . $data['error']);
         }
         
         // Cache for 10 minutes
@@ -155,19 +166,27 @@ class SportsOddsDisplay {
             'regions' => 'us,uk,eu',
             'markets' => 'h2h',
             'limit' => '10',
-            'style' => 'cards'
+            'style' => 'cards',
+            'bookmakers' => ''
         ), $atts);
+        
+        // Convert comma-separated bookmakers string to an array
+        $bookmakers_array = !empty($atts['bookmakers']) ? array_map('trim', explode(',', $atts['bookmakers'])) : array();
         
         $odds_data = $this->fetch_odds($atts['sport'], $atts['regions'], $atts['markets']);
         
+        // Check for error before rendering
         if (isset($odds_data['error'])) {
-            return '<div class="odds-error">Error: ' . $odds_data['error'] . '</div>';
+            // Return the error message directly
+            return '<div class="odds-error">Error: ' . esc_html($odds_data['error']) . '</div>';
         }
         
         if (empty($odds_data)) {
             return '<div class="odds-no-data">No odds data available</div>';
         }
         
+        // Pass the bookmakers array to the rendering function
+        $atts['bookmakers'] = $bookmakers_array;
         return $this->render_odds_html($odds_data, $atts);
     }
     
@@ -175,6 +194,8 @@ class SportsOddsDisplay {
     private function render_odds_html($odds_data, $atts) {
         $limit = intval($atts['limit']);
         $style = $atts['style'];
+        $allowed_bookmakers = isset($atts['bookmakers']) && is_array($atts['bookmakers']) ? $atts['bookmakers'] : array();
+        $filter_bookmakers = !empty($allowed_bookmakers);
         
         // Get enhanced settings if available
         $enhanced_settings = get_option('enhanced_odds_settings', array(
@@ -251,6 +272,12 @@ class SportsOddsDisplay {
                         
                         <div class="bookmaker-odds">
                             <?php foreach ($match['bookmakers'] as $bookmaker): ?>
+                                <?php 
+                                // Filter bookmakers if allowed list is provided
+                                if ($filter_bookmakers && !in_array($bookmaker['title'], $allowed_bookmakers)) {
+                                    continue; 
+                                }
+                                ?>
                                 <div class="bookmaker">
                                     <div class="bookmaker-name"><?php echo esc_html($bookmaker['title']); ?></div>
                                     <div class="odds-row">
@@ -300,5 +327,185 @@ function handle_refresh_odds() {
     $odds_data = $odds_display->fetch_odds($sport, $regions, $markets);
     
     wp_send_json_success($odds_data);
+}
+
+/**
+ * Fetches odds data for multiple sports/leagues.
+ * @param array $leagues Array of sport keys (e.g., ['soccer_epl', 'soccer_uefa_champs_league']).
+ * @param string $regions Comma-separated regions (e.g., 'us,uk,eu').
+ * @param string $markets Comma-separated markets (e.g., 'h2h,spreads').
+ * @return array An array containing combined odds data or an error.
+ */
+function fetch_odds_for_leagues($leagues, $regions, $markets) {
+    $odds_display = new SportsOddsDisplay();
+    $combined_data = array();
+    $errors = array();
+
+    // Create a transient key based on the parameters
+    $transient_key = 'sports_odds_leagues_' . md5(implode(',', $leagues) . $regions . $markets);
+    $cached_data = get_transient($transient_key);
+
+    if ($cached_data !== false) {
+        return $cached_data;
+    }
+
+    // Get API key directly from options
+    $api_key = get_option('odds_api_key', '');
+    if (empty($api_key)) {
+        return array('error' => 'API key not configured. Please configure your API key in the plugin settings.');
+    }
+
+    // Set the API key for the odds display instance
+    $odds_display->api_key = $api_key;
+
+    foreach ($leagues as $sport) {
+        try {
+            // Call the existing fetch_odds method for each sport
+            $sport_data = $odds_display->fetch_odds($sport, $regions, $markets);
+
+            if (isset($sport_data['error'])) {
+                $errors[] = 'Error fetching data for ' . $sport . ': ' . $sport_data['error'];
+                continue; // Skip this sport but continue with others
+            }
+
+            if (!empty($sport_data) && is_array($sport_data)) {
+                // Add sport identifier to each match
+                foreach ($sport_data as &$match) {
+                    $match['sport'] = $sport;
+                }
+                // Merge data from different sports
+                $combined_data = array_merge($combined_data, $sport_data);
+            }
+        } catch (Exception $e) {
+            $errors[] = 'Exception while fetching ' . $sport . ': ' . $e->getMessage();
+        }
+    }
+
+    if (empty($combined_data) && !empty($errors)) {
+        // Return combined errors if any occurred and no data was fetched
+        return array('error' => implode('; ', $errors));
+    }
+
+    if (empty($combined_data)) {
+        return array('error' => 'No odds data available for the selected leagues.');
+    }
+
+    // Sort combined data by commencement time
+    usort($combined_data, function($a, $b) {
+        return strtotime($a['commence_time']) - strtotime($b['commence_time']);
+    });
+
+    // Cache the combined data for 10 minutes
+    set_transient($transient_key, $combined_data, 10 * MINUTE_IN_SECONDS);
+
+    return $combined_data;
+}
+
+/**
+ * AJAX handler for refreshing hot games.
+ */
+add_action('wp_ajax_refresh_hot_games', 'handle_refresh_hot_games');
+add_action('wp_ajax_nopriv_refresh_hot_games', 'handle_refresh_hot_games');
+
+function handle_refresh_hot_games() {
+    check_ajax_referer('odds_nonce', 'nonce'); // Reuse the existing nonce for simplicity
+    
+    $leagues = isset($_POST['leagues']) ? (array) $_POST['leagues'] : array();
+    $regions = isset($_POST['regions']) ? sanitize_text_field($_POST['regions']) : 'uk,eu'; // Default regions
+    $markets = isset($_POST['markets']) ? sanitize_text_field($_POST['markets']) : 'h2h'; // Default market
+    $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5; // Default limit
+    $bookmakers = isset($_POST['bookmakers']) ? (array) $_POST['bookmakers'] : array();
+
+    $hot_games_data = fetch_odds_for_leagues($leagues, $regions, $markets);
+
+    // Apply limit and bookmaker filtering similar to the widget render method
+    if (!empty($hot_games_data) && !isset($hot_games_data['error'])) {
+         // Filter by selected bookmakers
+        $filter_bookmakers = !empty($bookmakers);
+
+        if ($filter_bookmakers) {
+            $filtered_data = [];
+            foreach ($hot_games_data as $match) {
+                $match_bookmakers = [];
+                foreach ($match['bookmakers'] as $bookmaker) {
+                    if (in_array($bookmaker['title'], $bookmakers)) {
+                        $match_bookmakers[] = $bookmaker;
+                    }
+                }
+                // Only keep match if it has at least one selected bookmaker
+                if (!empty($match_bookmakers)) {
+                    $match['bookmakers'] = $match_bookmakers;
+                    $filtered_data[] = $match;
+                }
+            }
+            $hot_games_data = $filtered_data;
+        }
+
+        // Apply the limit
+        $hot_games_data = array_slice($hot_games_data, 0, $limit);
+    }
+
+    // Render the HTML for the hot games list (similar to the widget render method's loop)
+    ob_start();
+    // Get enhanced settings for localization and timezone within the AJAX handler
+    $enhanced_settings = get_option('enhanced_odds_settings', array(
+        'locale' => 'en',
+        'timezone' => 'Africa/Douala',
+        'currency' => 'XAF'
+    ));
+
+    if (!empty($hot_games_data) && !isset($hot_games_data['error'])) {
+        foreach ($hot_games_data as $match) {
+            // Reuse the rendering logic from the widget's render method
+            ?>
+            <div class="match-card hot-game-match">
+                <div class="match-info">
+                    <div class="teams">
+                        <span class="home-team"><?php echo esc_html($match['home_team']); ?></span>
+                        <span class="vs">vs</span>
+                        <span class="away-team"><?php echo esc_html($match['away_team']); ?></span>
+                    </div>
+                    <div class="match-time">
+                        <?php
+                        $date = new DateTime($match['commence_time']);
+                        $date->setTimezone(new DateTimeZone($enhanced_settings['timezone']));
+                        echo $date->format('M j, Y H:i');
+                        ?>
+                    </div>
+                </div>
+
+                <?php if (!empty($match['bookmakers'])) : ?>
+                <div class="bookmaker-odds">
+                    <?php foreach ($match['bookmakers'] as $bookmaker): ?>
+                        <div class="bookmaker">
+                            <div class="bookmaker-name"><?php echo esc_html($bookmaker['title']); ?></div>
+                            <div class="odds-row">
+                                <?php
+                                if (isset($bookmaker['markets'][0]['outcomes'])):
+                                    foreach ($bookmaker['markets'][0]['outcomes'] as $outcome): ?>
+                                        <div class="odd-item">
+                                            <span class="outcome-name"><?php echo esc_html($outcome['name']); ?></span>
+                                            <span class="odd-value"><?php echo number_format($outcome['price'], 2); ?></span>
+                                        </div>
+                                    <?php endforeach;
+                                endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+            <?php
+        }
+    } else {
+        echo '<div class="odds-no-data">' . __('No hot games available at the moment.', 'textdomain') . '</div>';
+    }
+    $html = ob_get_clean();
+
+    if (isset($hot_games_data['error'])) {
+         wp_send_json_error(array('message' => 'Failed to refresh hot games: ' . $hot_games_data['error']));
+    } else {
+        wp_send_json_success(array('html' => $html));
+    }
 }
 ?>

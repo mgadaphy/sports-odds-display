@@ -300,6 +300,112 @@ jQuery(document).ready(function($) {
     $(document).on('mouseleave', '.odd-item', function() {
         $('.odds-tooltip').remove();
     });
+
+    // Existing AJAX handler for main odds refresh (if needed)
+    $('.sports-odds-container .odds-header button.refresh-odds').on('click', function() {
+        var container = $(this).closest('.sports-odds-container');
+        var sport = container.data('sport');
+        var regions = container.data('regions');
+        var markets = container.data('markets');
+        // Note: Bookmakers and limit are handled server-side with the shortcode
+        
+        // Disable button and show loading indicator
+        var refreshButton = $(this);
+        refreshButton.prop('disabled', true).addClass('loading');
+
+        $.ajax({
+            url: ajax_object.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'refresh_odds',
+                nonce: ajax_object.nonce,
+                sport: sport,
+                regions: regions,
+                markets: markets
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Assuming the response contains the full rendered HTML for the odds section
+                    // This part needs to be adjusted to update the specific parts or re-render
+                    console.log('Odds refreshed successfully!', response.data);
+                    // Example: update a specific part of the container with new HTML
+                    // container.find('.odds-matches').html(response.data.html); 
+                    // Or you might need to trigger a full re-render or update specific data points
+                    alert('Odds data fetched. Frontend update logic needs implementation.');
+                } else {
+                    console.error('Error refreshing odds:', response.data.message);
+                    alert('Failed to refresh odds: ' + response.data.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX error:', status, error);
+                alert('AJAX request failed.');
+            },
+            complete: function() {
+                 // Re-enable button and hide loading indicator
+                refreshButton.prop('disabled', false).removeClass('loading');
+            }
+        });
+    });
+
+    // Auto-refresh for Hot Games widgets
+    $('.sports-hot-games-container').each(function() {
+        const container = $(this);
+        // We'll add a data attribute for refresh interval to the container in the PHP widget file later
+        const refreshMinutes = parseInt(container.data('refresh-interval')); 
+        
+        if (refreshMinutes > 0) {
+            setInterval(function() {
+                refreshHotGamesWidget(container);
+            }, refreshMinutes * 60 * 1000);
+        }
+    });
+
+    function refreshHotGamesWidget(container) {
+        const leagues = container.data('leagues'); // Comma-separated string from data attribute
+        const bookmakers = container.data('bookmakers'); // Comma-separated string from data attribute
+        const limit = container.data('limit'); // Number from data attribute
+        
+        // Note: Regions and Markets are currently fixed in the AJAX handler for hot games
+        // These can be added as data attributes and passed if needed in the future
+
+        // Find the list container to update
+        const hotGamesList = container.find('.hot-games-list');
+        
+        // Add a loading indicator (optional but good UX)
+        hotGamesList.addClass('loading').css('opacity', 0.5); // Example loading state
+
+        $.ajax({
+            url: ajax_object.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'refresh_hot_games',
+                nonce: ajax_object.nonce,
+                leagues: leagues ? leagues.split(',') : [], // Convert comma string back to array
+                bookmakers: bookmakers ? bookmakers.split(',') : [], // Convert comma string back to array
+                limit: limit
+                // Add regions, markets if they become configurable
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Replace the content of the hot games list with the new HTML
+                    hotGamesList.html(response.data.html);
+                    console.log('Hot games refreshed successfully!');
+                } else {
+                    console.error('Error refreshing hot games:', response.data.message);
+                    hotGamesList.html('<div class="odds-error">' + response.data.message + '</div>'); // Display error
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX error refreshing hot games:', status, error);
+                hotGamesList.html('<div class="odds-error">AJAX request failed to refresh hot games.</div>'); // Display generic error
+            },
+            complete: function() {
+                 // Remove loading indicator
+                hotGamesList.removeClass('loading').css('opacity', 1); // Example loading state
+            }
+        });
+    }
 });
 
 // Utility functions
