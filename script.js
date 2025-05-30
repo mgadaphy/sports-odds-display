@@ -375,6 +375,15 @@ jQuery(document).ready(function($) {
         // Get the selected date from the frontend input, default to the data attribute if available and filter is enabled
         const filterDate = enableDateFilter ? (dateInput.val() || container.data('filter-date')) : '';
 
+        // If date filter is enabled and no date is set in the input, set it to today's date
+        if (enableDateFilter && !dateInput.val()) {
+            const today = new Date();
+            const todayISO = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+            dateInput.val(todayISO);
+            // Update filterDate variable as well
+            filterDate = todayISO;
+        }
+
         // Add a loading indicator (optional but good UX)
         hotGamesList.addClass('loading').css('opacity', 0.5); // Example loading state
 
@@ -440,8 +449,12 @@ jQuery(document).ready(function($) {
                 // Ensure the date parsing is robust and considers timezones if necessary.
                 const matchDate = new Date(matchTimeStr);
                 
+                // Ensure comparison is done based on dates without time for filtering from the start of the day
+                const matchDateOnly = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+                const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+
                 // Compare dates: keep matches from the selected date forward
-                return matchDate >= selectedDate;
+                return matchDateOnly >= selectedDateOnly;
             });
 
              if (matches.length === 0) {

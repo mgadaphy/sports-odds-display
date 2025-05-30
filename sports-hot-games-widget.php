@@ -342,7 +342,7 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
-        $this->add_control(
+         $this->add_control(
             'enable_date_filter',
             [
                 'label' => __('Enable Date Filtering', 'textdomain'),
@@ -1009,6 +1009,112 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
         );
 
         $this->end_controls_section();
+
+        // Style Section - Filtering
+        $this->start_controls_section(
+            'hot_games_style_filtering_section',
+            [
+                'label' => __('Filtering', 'textdomain'),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_filter_container_heading',
+            [
+                'label' => __('Filter Container', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::HEADING,
+            ]
+        );
+
+        $this->add_responsive_control(
+            'hot_games_filter_container_margin',
+            [
+                'label' => __('Margin', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .hot-games-date-filter' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'hot_games_filter_container_padding',
+            [
+                'label' => __('Padding', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .hot-games-date-filter' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_filter_input_heading',
+            [
+                'label' => __('Date Input', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_filter_input_color',
+            [
+                'label' => __('Text Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .hot-games-filter-date-input' => 'color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_filter_input_background_color',
+            [
+                'label' => __('Background Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .hot-games-filter-date-input' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'hot_games_filter_input_border',
+                'selector' => '{{WRAPPER}} .hot-games-filter-date-input',
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_filter_input_border_radius',
+            [
+                'label' => __('Border Radius', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .hot-games-filter-date-input' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'hot_games_filter_input_padding',
+            [
+                'label' => __('Padding', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .hot-games-filter-date-input' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     protected function render() {
@@ -1039,7 +1145,7 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
 
         // Apply limit and bookmaker filtering
         if (!empty($data)) {
-            // Filter by selected bookmakers
+             // Filter by selected bookmakers
             $allowed_bookmakers = is_array($settings['bookmakers']) ? $settings['bookmakers'] : array();
             $filter_bookmakers = !empty($allowed_bookmakers);
 
@@ -1153,43 +1259,43 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
                             <h4 class="hot-games-sport-title"><?php echo esc_html($sport_name); ?></h4>
                             <?php
                             foreach ($matches as $match) {
-                                ?>
-                                <div class="match-card hot-game-match">
-                                    <div class="match-info">
-                                        <div class="teams">
-                                            <span class="home-team"><?php echo esc_html($match['home_team']); ?></span>
-                                            <span class="vs">vs</span>
-                                            <span class="away-team"><?php echo esc_html($match['away_team']); ?></span>
-                                        </div>
-                                        <div class="match-time">
-                                            <?php
-                                            $date = new DateTime($match['commence_time']);
-                                            $date->setTimezone(new DateTimeZone($enhanced_settings['timezone']));
-                                            echo $date->format('M j, Y H:i');
-                                            ?>
+                        ?>
+                        <div class="match-card hot-game-match">
+                            <div class="match-info">
+                                <div class="teams">
+                                    <span class="home-team"><?php echo esc_html($match['home_team']); ?></span>
+                                    <span class="vs">vs</span>
+                                    <span class="away-team"><?php echo esc_html($match['away_team']); ?></span>
+                                </div>
+                                <div class="match-time">
+                                    <?php
+                                    $date = new DateTime($match['commence_time']);
+                                    $date->setTimezone(new DateTimeZone($enhanced_settings['timezone']));
+                                    echo $date->format('M j, Y H:i');
+                                    ?>
+                                </div>
+                            </div>
+                            
+                            <?php if (!empty($match['bookmakers'])) : ?>
+                            <div class="bookmaker-odds">
+                                <?php foreach ($match['bookmakers'] as $bookmaker): ?>
+                                    <div class="bookmaker">
+                                        <div class="bookmaker-name"><?php echo esc_html($bookmaker['title']); ?></div>
+                                        <div class="odds-row">
+                                            <?php 
+                                            if (isset($bookmaker['markets'][0]['outcomes'])): 
+                                                foreach ($bookmaker['markets'][0]['outcomes'] as $outcome): ?>
+                                                    <div class="odd-item">
+                                                        <span class="outcome-name"><?php echo esc_html($outcome['name']); ?></span>
+                                                        <span class="odd-value"><?php echo number_format($outcome['price'], 2); ?></span>
+                                                    </div>
+                                                <?php endforeach;
+                                            endif; ?>
                                         </div>
                                     </div>
-
-                                    <?php if (!empty($match['bookmakers'])) : ?>
-                                    <div class="bookmaker-odds">
-                                        <?php foreach ($match['bookmakers'] as $bookmaker): ?>
-                                            <div class="bookmaker">
-                                                <div class="bookmaker-name"><?php echo esc_html($bookmaker['title']); ?></div>
-                                                <div class="odds-row">
-                                                    <?php
-                                                    if (isset($bookmaker['markets'][0]['outcomes'])):
-                                                        foreach ($bookmaker['markets'][0]['outcomes'] as $outcome): ?>
-                                                            <div class="odd-item">
-                                                                <span class="outcome-name"><?php echo esc_html($outcome['name']); ?></span>
-                                                                <span class="odd-value"><?php echo number_format($outcome['price'], 2); ?></span>
-                                                            </div>
-                                                        <?php endforeach;
-                                                    endif; ?>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php endif; ?>
                                 </div>
                                 <?php
                             }

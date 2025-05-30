@@ -388,6 +388,18 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        $this->add_responsive_control(
+            'card_margin',
+            [
+                'label' => __('Margin', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .match-card' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
 
         // Style Section - Teams
@@ -457,6 +469,87 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
                 'name' => 'match_time_typography',
                 'label' => __('Match Time Typography', 'textdomain'),
                 'selector' => '{{WRAPPER}} .match-time',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'match_time_padding',
+            [
+                'label' => __('Match Time Padding', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .match-time' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'match_time_margin',
+            [
+                'label' => __('Match Time Margin', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .match-time' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'match_time_background_color',
+            [
+                'label' => __('Background Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .match-time' => 'background-color: {{VALUE}}',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'match_time_border',
+                'selector' => '{{WRAPPER}} .match-time',
+            ]
+        );
+
+        $this->add_control(
+            'match_time_border_radius',
+            [
+                'label' => __('Border Radius', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .match-time' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'match_time_align',
+            [
+                'label' => __('Alignment', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::CHOOSE,
+                'options' => [
+                    'left' => [
+                        'title' => __('Left', 'textdomain'),
+                        'icon' => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => __('Center', 'textdomain'),
+                        'icon' => 'eicon-text-align-center',
+                    ],
+                    'right' => [
+                        'title' => __('Right', 'textdomain'),
+                        'icon' => 'eicon-text-align-right',
+                    ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .match-time' => 'text-align: {{VALUE}};',
+                ],
             ]
         );
 
@@ -553,6 +646,26 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'bookmaker_name_color',
+            [
+                'label' => __('Bookmaker Name Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .bookmaker-name' => 'color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'bookmaker_name_typography',
+                'label' => __('Bookmaker Name Typography', 'textdomain'),
+                'selector' => '{{WRAPPER}} .bookmaker-name',
+            ]
+        );
+
         $this->end_controls_section();
 
         // Style Section - Footer
@@ -612,6 +725,62 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
                 'name' => 'branding_typography',
                 'label' => __('Branding Typography', 'textdomain'),
                 'selector' => '{{WRAPPER}} .scorido-branding',
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Style Section - Teams
+        $this->start_controls_section(
+            'style_teams_section',
+            [
+                'label' => __('Teams', 'textdomain'),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'team_text_color',
+            [
+                'label' => __('Text Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .home-team, {{WRAPPER}} .away-team' => 'color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'team_typography',
+                'label' => __('Typography', 'textdomain'),
+                'selector' => '{{WRAPPER}} .home-team, {{WRAPPER}} .away-team',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'teams_align',
+            [
+                'label' => __('Alignment', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::CHOOSE,
+                'options' => [
+                    'left' => [
+                        'title' => __('Left', 'textdomain'),
+                        'icon' => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => __('Center', 'textdomain'),
+                        'icon' => 'eicon-text-align-center',
+                    ],
+                    'right' => [
+                        'title' => __('Right', 'textdomain'),
+                        'icon' => 'eicon-text-align-right',
+                    ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .teams' => 'text-align: {{VALUE}};',
+                ],
             ]
         );
 
