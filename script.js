@@ -450,6 +450,7 @@ jQuery(document).ready(function($) {
                 const matchDate = new Date(matchTimeStr);
                 
                 // Ensure comparison is done based on dates without time for filtering from the start of the day
+                // This correctly implements "from this date forward" when the input is date-only.
                 const matchDateOnly = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
                 const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
 

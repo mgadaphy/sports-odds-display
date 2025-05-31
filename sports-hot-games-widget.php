@@ -940,12 +940,95 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
         );
 
         $this->add_control(
+            'hot_games_see_more_container_heading',
+            [
+                'label' => __('Container Styling', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::HEADING,
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_see_more_container_background_color',
+            [
+                'label' => __('Background Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'hot_games_see_more_container_margin',
+            [
+                'label' => __('Margin', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'hot_games_see_more_container_padding',
+            [
+                'label' => __('Padding', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_see_more_button_heading',
+            [
+                'label' => __('Button Styling (Normal)', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
             'hot_games_see_more_color',
             [
                 'label' => __('Text Color', 'textdomain'),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .see-more-link a' => 'color: {{VALUE}}',
+                    '{{WRAPPER}} .see-more-link a.elementor-button' => 'color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_see_more_background_color',
+            [
+                'label' => __('Background Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link a.elementor-button' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'hot_games_see_more_border',
+                'selector' => '{{WRAPPER}} .see-more-link a.elementor-button',
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_see_more_border_radius',
+            [
+                'label' => __('Border Radius', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link a.elementor-button' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -955,7 +1038,7 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
             [
                 'name' => 'hot_games_see_more_typography',
                 'label' => __('Typography', 'textdomain'),
-                'selector' => '{{WRAPPER}} .see-more-link a',
+                'selector' => '{{WRAPPER}} .see-more-link a.elementor-button',
             ]
         );
 
@@ -963,7 +1046,62 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
             \Elementor\Group_Control_Text_Shadow::get_type(),
             [
                 'name' => 'hot_games_see_more_text_shadow',
-                'selector' => '{{WRAPPER}} .see-more-link a',
+                'selector' => '{{WRAPPER}} .see-more-link a.elementor-button',
+            ]
+        );
+
+        // Add icon controls for the button
+        $this->add_control(
+            'hot_games_see_more_button_icon',
+            [
+                'label' => __('Icon', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::ICON,
+                'label_block' => true,
+                'default' => '',
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_see_more_button_icon_align',
+            [
+                'label' => __('Icon Position', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'options' => [
+                    'left' => __('Before', 'textdomain'),
+                    'right' => __('After', 'textdomain'),
+                ],
+                'default' => 'left',
+                'condition' => [
+                    'hot_games_see_more_button_icon!' => '',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'hot_games_see_more_button_icon_indent',
+            [
+                'label' => __('Icon Spacing', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'range' => [
+                    'px' => [
+                        'max' => 50,
+                    ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link .elementor-button-text' => '{{hot_games_see_more_button_icon_align.value}}: {{SIZE}}{{UNIT}};',
+                ],
+                'condition' => [
+                    'hot_games_see_more_button_icon!' => '',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_see_more_button_hover_heading',
+            [
+                'label' => __('Button Styling (Hover)', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
             ]
         );
 
@@ -973,7 +1111,38 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
                 'label' => __('Hover Color', 'textdomain'),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .see-more-link a:hover' => 'color: {{VALUE}}',
+                    '{{WRAPPER}} .see-more-link a.elementor-button:hover' => 'color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_see_more_hover_background_color',
+            [
+                'label' => __('Hover Background Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link a.elementor-button:hover' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'hot_games_see_more_hover_border',
+                'selector' => '{{WRAPPER}} .see-more-link a.elementor-button:hover',
+            ]
+        );
+
+        $this->add_control(
+            'hot_games_see_more_hover_border_radius',
+            [
+                'label' => __('Hover Border Radius', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link a.elementor-button:hover' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -1312,7 +1481,36 @@ class Sports_Hot_Games_Elementor_Widget extends \Elementor\Widget_Base {
             <?php if (!empty($see_more_url)) : ?>
                 <div class="see-more-link" style="text-align: center; margin-top: 20px;">
                     <a href="<?php echo esc_url($see_more_url); ?>" class="elementor-button elementor-button-link elementor-size-sm">
-                        <?php echo __('See More Full Odds', 'textdomain'); ?>
+                        <?php
+                        $button_text = __('See More Full Odds', 'textdomain');
+                        $button_icon = $settings['hot_games_see_more_button_icon'] ?? '';
+                        $button_icon_align = $settings['hot_games_see_more_button_icon_align'] ?? 'left';
+
+                        $migrated = isset($settings['__fa4_migrated']['hot_games_see_more_button_icon']);
+                        $is_new = empty($button_icon) || \Elementor\Icons_Manager::is_migration_needed($button_icon);
+                        
+                        if (!empty($button_icon)) {
+                            ob_start();
+                            if ($is_new) {
+                                \Elementor\Icons_Manager::render_icon($button_icon, ['aria-hidden' => 'true']);
+                            } else {
+                                ?>
+                                <i class="<?php echo esc_attr($button_icon); ?>" aria-hidden="true"></i>
+                                <?php
+                            }
+                            $icon_html = ob_get_clean();
+
+                            if ($button_icon_align === 'left') {
+                                echo '<span class="elementor-button-icon elementor-align-icon-left">' . $icon_html . '</span>';
+                                echo '<span class="elementor-button-text">' . esc_html($button_text) . '</span>';
+                            } else {
+                                echo '<span class="elementor-button-text">' . esc_html($button_text) . '</span>';
+                                echo '<span class="elementor-button-icon elementor-align-icon-right">' . $icon_html . '</span>';
+                            }
+                        } else {
+                            echo '<span class="elementor-button-text">' . esc_html($button_text) . '</span>';
+                        }
+                        ?>
                     </a>
                 </div>
             <?php endif; ?>

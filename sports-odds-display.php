@@ -240,25 +240,19 @@ class SportsOddsDisplay {
             border-radius: <?php echo esc_attr($enhanced_settings['border_radius']); ?> !important;
         }
         .sports-odds-container .odd-item:hover {
-            border-color: <?php echo esc_attr($enhanced_settings['primary_color']); ?> !important;
+            border-color: var(--primary-color, #007bff) !important;
         }
         .sports-odds-container .live-indicator {
             background: <?php echo esc_attr($enhanced_settings['success_color']); ?> !important;
         }
         </style>
         
-        <div class="sports-odds-container style-<?php echo esc_attr($style); ?>" 
+        <div class="sports-odds-container style-<?php echo esc_attr($style); ?>"
              data-currency="<?php echo esc_attr($enhanced_settings['currency']); ?>"
              data-locale="<?php echo esc_attr($enhanced_settings['locale']); ?>"
              data-timezone="<?php echo esc_attr($enhanced_settings['timezone']); ?>">
-            <div class="odds-header">
-                <h3><?php echo $enhanced_settings['locale'] === 'fr' ? 'Conseils VIP du Jour' : 'Today\'s VIP Tips'; ?></h3>
-                <div class="match-tabs">
-                    <?php for ($i = 1; $i <= 4; $i++): ?>
-                        <span class="match-tab <?php echo $i === 1 ? 'active' : ''; ?>"><?php echo $enhanced_settings['locale'] === 'fr' ? 'Match ' : 'Match '; ?><?php echo $i; ?></span>
-                    <?php endfor; ?>
-                </div>
-            </div>
+            <?php
+            ?>
             
             <div class="odds-matches">
                 <?php 
@@ -325,14 +319,8 @@ class SportsOddsDisplay {
                 <?php endforeach; ?>
             </div>
             
-            <div class="odds-footer">
-                <p><?php echo $enhanced_settings['locale'] === 'fr' ? 
-                    'Nos choix quotidiens sont basés sur une analyse statistique approfondie par Intelligence Artificielle, la forme des équipes et des informations internes. Nous nous efforçons de fournir les prédictions les plus précises et informées possibles.' : 
-                    'Our daily picks are based on in-depth Artificial Intelligence statistical analysis, team form, and insider information. We strive to provide the most accurate and informed predictions possible.'; ?></p>
-                <div class="scorido-branding">
-                    <strong>Scorido Team</strong>
-                </div>
-            </div>
+            <?php
+            ?>
         </div>
         <?php
         return ob_get_clean();

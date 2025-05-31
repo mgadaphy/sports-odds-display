@@ -138,6 +138,17 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        // Add See More Link control
+        $this->add_control(
+            'see_more_link',
+            [
+                'label' => __('"See More" Link URL', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::URL,
+                'placeholder' => __('https://your-site.com/full-odds-page', 'textdomain'),
+                'description' => __('URL of the page where users can see all odds. Leave empty to hide.', 'textdomain'),
+            ]
+        );
+
         $this->end_controls_section();
 
         // Style Section - Container
@@ -431,6 +442,31 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        $this->add_responsive_control(
+            'teams_align',
+            [
+                'label' => __('Alignment', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::CHOOSE,
+                'options' => [
+                    'left' => [
+                        'title' => __('Left', 'textdomain'),
+                        'icon' => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => __('Center', 'textdomain'),
+                        'icon' => 'eicon-text-align-center',
+                    ],
+                    'right' => [
+                        'title' => __('Right', 'textdomain'),
+                        'icon' => 'eicon-text-align-right',
+                    ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .teams' => 'text-align: {{VALUE}};',
+                ],
+            ]
+        );
+
         $this->add_control(
             'vs_text_color',
             [
@@ -439,6 +475,7 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
                 'selectors' => [
                     '{{WRAPPER}} .vs' => 'color: {{VALUE}}',
                 ],
+                'separator' => 'before',
             ]
         );
 
@@ -730,22 +767,108 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
 
         $this->end_controls_section();
 
-        // Style Section - Teams
+        // Style Section - See More Link
         $this->start_controls_section(
-            'style_teams_section',
+            'style_see_more_section',
             [
-                'label' => __('Teams', 'textdomain'),
+                'label' => __('See More Link', 'textdomain'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'see_more_link[url]!' => '', // Only show if See More URL is set
+                ],
+            ]
+        );
+
+         $this->add_control(
+            'see_more_container_heading',
+            [
+                'label' => __('Container Styling', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::HEADING,
             ]
         );
 
         $this->add_control(
-            'team_text_color',
+            'see_more_container_background_color',
+            [
+                'label' => __('Background Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'see_more_container_margin',
+            [
+                'label' => __('Margin', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'see_more_container_padding',
+            [
+                'label' => __('Padding', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'see_more_button_heading',
+            [
+                'label' => __('Button Styling (Normal)', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'see_more_color',
             [
                 'label' => __('Text Color', 'textdomain'),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .home-team, {{WRAPPER}} .away-team' => 'color: {{VALUE}}',
+                    '{{WRAPPER}} .see-more-link a.elementor-button' => 'color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'see_more_background_color',
+            [
+                'label' => __('Background Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link a.elementor-button' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'see_more_border',
+                'selector' => '{{WRAPPER}} .see-more-link a.elementor-button',
+            ]
+        );
+
+        $this->add_control(
+            'see_more_border_radius',
+            [
+                'label' => __('Border Radius', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link a.elementor-button' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -753,33 +876,113 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
         $this->add_group_control(
             \Elementor\Group_Control_Typography::get_type(),
             [
-                'name' => 'team_typography',
+                'name' => 'see_more_typography',
                 'label' => __('Typography', 'textdomain'),
-                'selector' => '{{WRAPPER}} .home-team, {{WRAPPER}} .away-team',
+                'selector' => '{{WRAPPER}} .see-more-link a.elementor-button',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Text_Shadow::get_type(),
+            [
+                'name' => 'see_more_text_shadow',
+                'selector' => '{{WRAPPER}} .see-more-link a.elementor-button',
+            ]
+        );
+
+        // Add icon controls for the button
+        $this->add_control(
+            'see_more_button_icon',
+            [
+                'label' => __('Icon', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::ICON,
+                'label_block' => true,
+                'default' => '',
+            ]
+        );
+
+        $this->add_control(
+            'see_more_button_icon_align',
+            [
+                'label' => __('Icon Position', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'options' => [
+                    'left' => __('Before', 'textdomain'),
+                    'right' => __('After', 'textdomain'),
+                ],
+                'default' => 'left',
+                'condition' => [
+                    'see_more_button_icon!' => '',
+                ],
             ]
         );
 
         $this->add_responsive_control(
-            'teams_align',
+            'see_more_button_icon_indent',
             [
-                'label' => __('Alignment', 'textdomain'),
-                'type' => \Elementor\Controls_Manager::CHOOSE,
-                'options' => [
-                    'left' => [
-                        'title' => __('Left', 'textdomain'),
-                        'icon' => 'eicon-text-align-left',
-                    ],
-                    'center' => [
-                        'title' => __('Center', 'textdomain'),
-                        'icon' => 'eicon-text-align-center',
-                    ],
-                    'right' => [
-                        'title' => __('Right', 'textdomain'),
-                        'icon' => 'eicon-text-align-right',
+                'label' => __('Icon Spacing', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'range' => [
+                    'px' => [
+                        'max' => 50,
                     ],
                 ],
                 'selectors' => [
-                    '{{WRAPPER}} .teams' => 'text-align: {{VALUE}};',
+                    '{{WRAPPER}} .see-more-link .elementor-button-icon' => 'margin-{{see_more_button_icon_align.value}}: {{SIZE}}{{UNIT}};',
+                ],
+                'condition' => [
+                    'see_more_button_icon!' => '',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'see_more_button_hover_heading',
+            [
+                'label' => __('Button Styling (Hover)', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'see_more_hover_color',
+            [
+                'label' => __('Hover Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link a.elementor-button:hover' => 'color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'see_more_hover_background_color',
+            [
+                'label' => __('Hover Background Color', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link a.elementor-button:hover' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'see_more_hover_border',
+                'selector' => '{{WRAPPER}} .see-more-link a.elementor-button:hover',
+            ]
+        );
+
+        $this->add_control(
+            'see_more_hover_border_radius',
+            [
+                'label' => __('Hover Border Radius', 'textdomain'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .see-more-link a.elementor-button:hover' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -791,15 +994,89 @@ class Sports_Odds_Elementor_Widget extends \Elementor\Widget_Base {
         $settings = $this->get_settings_for_display();
         
         // Prepare shortcode attributes
-        $sport = $settings['sport'];
+        $sport_key = $settings['sport'];
         $regions = is_array($settings['regions']) ? implode(',', $settings['regions']) : 'uk,eu';
         $markets = is_array($settings['markets']) ? implode(',', $settings['markets']) : 'h2h';
         $limit = $settings['limit'];
         $dark_mode_class = isset($settings['dark_mode']) && $settings['dark_mode'] === 'yes' ? 'dark-mode' : '';
         $bookmakers = is_array($settings['bookmakers']) ? implode(',', $settings['bookmakers']) : '';
-        
+        $see_more_url = $settings['see_more_link']['url'] ?? ''; // Get See More URL
+
+        // Get the human-readable sport name
+         $sport_names = [
+            'soccer_epl' => __('English Premier League', 'textdomain'),
+            'soccer_spain_la_liga' => __('Spanish La Liga', 'textdomain'),
+            'soccer_germany_bundesliga' => __('German Bundesliga', 'textdomain'),
+            'soccer_italy_serie_a' => __('Italian Serie A', 'textdomain'),
+            'soccer_france_ligue_one' => __('French Ligue 1', 'textdomain'),
+            'soccer_usa_mls' => __('Major League Soccer (MLS)', 'textdomain'),
+            'soccer_uefa_champs_league' => __('UEFA Champions League', 'textdomain'),
+            'soccer_uefa_europa_league' => __('UEFA Europa League', 'textdomain'),
+            'soccer_africa_cup_of_nations' => __('Africa Cup of Nations', 'textdomain'),
+            'soccer_cameroon_league' => __('Cameroon Elite One (Likely Unsupported)', 'textdomain'),
+            'americanfootball_nfl' => __('NFL', 'textdomain'),
+            'basketball_nba' => __('NBA', 'textdomain'),
+            'baseball_mlb' => __('MLB', 'textdomain'),
+            'tennis_atp_us_open' => __('ATP US Open', 'textdomain'),
+            'tennis_atp_wimbledon' => __('ATP Wimbledon', 'textdomain'),
+            'tennis_atp_french_open' => __('ATP French Open', 'textdomain'),
+            'tennis_atp_aus_open_singles' => __('ATP Australian Open', 'textdomain'),
+            'tennis_wta_us_open' => __('WTA US Open', 'textdomain'),
+            'tennis_wta_wimbledon' => __('WTA Wimbledon', 'textdomain'),
+            'tennis_wta_french_open' => __('WTA French Open', 'textdomain'),
+            'tennis_wta_aus_open_singles' => __('WTA Australian Open', 'textdomain'),
+            'golf_pga_championship_winner' => __('PGA Championship Winner', 'textdomain'),
+        ];
+        $sport_name = $sport_names[$sport_key] ?? ucfirst(str_replace(['_'], [' '], $sport_key));
+
         echo '<div class="sports-odds-container ' . esc_attr($dark_mode_class) . '">';
-        echo do_shortcode('[sports_odds sport="' . esc_attr($sport) . '" regions="' . esc_attr($regions) . '" markets="' . esc_attr($markets) . '" limit="' . esc_attr($limit) . '" bookmakers="' . esc_attr($bookmakers) . '"]');
+        
+        // New Header with Sport Name
+        echo '<div class="odds-header">';
+        echo '<h3>' . esc_html($sport_name) . ' Odds</h3>'; // Display sport name as title
+        echo '</div>';
+
+        // Display the odds using the shortcode
+        echo do_shortcode('[sports_odds sport="' . esc_attr($sport_key) . '" regions="' . esc_attr($regions) . '" markets="' . esc_attr($markets) . '" limit="' . esc_attr($limit) . '" bookmakers="' . esc_attr($bookmakers) . '"]');
+        
+        // New Footer with See More button (conditional)
+        if (!empty($see_more_url)) {
+            echo '<div class="odds-footer see-more-link" style="text-align: center; margin-top: 20px;">'; // Reuse see-more-link class for consistency
+            echo '<a href="' . esc_url($see_more_url) . '" class="elementor-button elementor-button-link elementor-size-sm">';
+            
+            $button_text = __('See More Full Odds', 'textdomain'); // Button text
+            $button_icon = $settings['see_more_button_icon'] ?? '';
+            $button_icon_align = $settings['see_more_button_icon_align'] ?? 'left';
+
+            $migrated = isset($settings['__fa4_migrated']['see_more_button_icon']);
+            $is_new = empty($button_icon) || \Elementor\Icons_Manager::is_migration_needed($button_icon);
+
+            if (!empty($button_icon)) {
+                ob_start();
+                if ($is_new) {
+                    \Elementor\Icons_Manager::render_icon($button_icon, ['aria-hidden' => 'true']);
+                } else {
+                    ?>
+                    <i class="<?php echo esc_attr($button_icon); ?>" aria-hidden="true"></i>
+                    <?php
+                }
+                $icon_html = ob_get_clean();
+
+                if ($button_icon_align === 'left') {
+                    echo '<span class="elementor-button-icon elementor-align-icon-left">' . $icon_html . '</span>';
+                    echo '<span class="elementor-button-text">' . esc_html($button_text) . '</span>';
+                } else {
+                    echo '<span class="elementor-button-text">' . esc_html($button_text) . '</span>';
+                    echo '<span class="elementor-button-icon elementor-align-icon-right\">' . $icon_html . '</span>';
+                }
+            } else {
+                echo '<span class="elementor-button-text">' . esc_html($button_text) . '</span>';
+            }
+
+            echo '</a>';
+            echo '</div>';
+        }
+
         echo '</div>';
     }
 }
